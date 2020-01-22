@@ -9,7 +9,7 @@ from urllib.error import URLError, HTTPError
 
 SLACK_CHANNEL = env['slackChannel']
 HOOK_URL = env['slackHookURL']
-HTTPS_ENDPOINT = env['eagleEndPoint']
+HTTPS_ENDPOINT = env['httpEndPoint']
 CLUSTER_NAME = env['clusterName']
 RUNBOOK = env['runbook']
 
