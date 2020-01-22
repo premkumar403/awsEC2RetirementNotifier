@@ -21,6 +21,7 @@ def lambda_handler(event, context):
     logger.info("Event: %s", json.dumps(event, indent=4))
     status_info = event['detail']
     logger.info("Event: %s", json.dumps(event, indent=4))
+    alert_title = event['detail']['eventDescription'][0]['latestDescription']
     ec2 = boto3.client('ec2')
     response = ec2.describe_instances(
         InstanceIds = [event['resources'][0]]
@@ -59,7 +60,7 @@ def lambda_handler(event, context):
             logger.error("Server Connection failed:  %s", e.reason)
 
     https_message = {
-        'title': event['detail-type'],
+        'title': alert_title,
         'channel': SLACK_CHANNEL,
         'accountName': event['account'],
         'AWSregion': event['region'],
