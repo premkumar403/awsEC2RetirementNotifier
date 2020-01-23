@@ -6,7 +6,7 @@ from os import environ as env
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 
-
+# lambda env Variables
 SLACK_CHANNEL = env['slackChannel']
 HOOK_URL = env['slackHookURL']
 HTTPS_ENDPOINT = env['httpEndPoint']
@@ -24,12 +24,12 @@ def lambda_handler(event, context):
     alert_title = event['detail']['eventDescription'][0]['latestDescription']
     ec2 = boto3.client('ec2')
     response = ec2.describe_instances(
-        InstanceIds = [event['resources'][0]]
+        InstanceIds=[event['resources'][0]]
     )
-    
-    instanceTags = response['Reservations'][0]['Instances'][0]['Tags'] 
-      
-    for i in range(0,len(response['Reservations'][0]['Instances'][0]['Tags'])):
+
+    instanceTags = response['Reservations'][0]['Instances'][0]['Tags']
+
+    for i in range(0, len(response['Reservations'][0]['Instances'][0]['Tags'])):
         key = response['Reservations'][0]['Instances'][0]['Tags'][i]['Key']
         if key == 'KubernetesCluster':
             cluster = response['Reservations'][0]['Instances'][0]['Tags'][i]['Value']
@@ -37,9 +37,9 @@ def lambda_handler(event, context):
             # pprint.pprint(i)
 
     pprint.pprint(cluster)
-    pprint.pprint( env['clusterName'])
+    pprint.pprint(env['clusterName'])
 
-    if  env['clusterName']:
+    if env['clusterName']:
         # TODO: write code...
         text = (
             f"EC2 instance {event['resources']} in {event['region']}"
@@ -59,27 +59,29 @@ def lambda_handler(event, context):
         except URLError as e:
             logger.error("Server Connection failed:  %s", e.reason)
 
-    https_message = {
-        'title': alert_title,
-        'channel': SLACK_CHANNEL,
-        'accountName': event['account'],
-        'AWSregion': event['region'],
-        'alertName': event['detail-type'],
-        'instanceName': event['resources'],
-        'AlertDescription': text,
-        'info': status_info['eventDescription'],
-        'support': "devops",
-        'tags': status_info['affectedEntities'],
-        'instanceTags': instanceTags,
-        'Runbook': RUNBOOK
-    }
-    req1 = Request(HTTPS_ENDPOINT, json.dumps(https_message).encode('utf-8'))
-    try:
-        response = urlopen(req1)
-        response.read()
-        logger.info("Message posted to %s", https_message['channel'])
-    except HTTPError as e:
-        logger.error("Request failed: %d %s", e.code, e.reason)
-    except URLError as e:
-        logger.error("Server connection failed: %s", e.reason)
+        https_message = {
+            'title': alert_title,
+            'channel': SLACK_CHANNEL,
+            'accountName': event['account'],
+            'AWSregion': event['region'],
+            'alertName': event['detail-type'],
+            'instanceName': event['resources'],
+            'AlertDescription': text,
+            'info': status_info['eventDescription'],
+            'support': "devops",
+            'tags': status_info['affectedEntities'],
+            'instanceTags': instanceTags,
+            'Runbook': RUNBOOK
+        }
+        req1 = Request(HTTPS_ENDPOINT, json.dumps(https_message).encode('utf-8'))
+        try:
+            response = urlopen(req1)
+            response.read()
+            logger.info("Message posted to %s", https_message['channel'])
+        except HTTPError as e:
+            logger.error("Request failed: %d %s", e.code, e.reason)
+        except URLError as e:
+            logger.error("Server connection failed: %s", e.reason)
 
+    else:
+        print("Instance does not belong to this cluster\"env['clusterName']\" ")
