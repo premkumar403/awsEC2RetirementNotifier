@@ -39,7 +39,7 @@ def lambda_handler(event, context):
     pprint.pprint(cluster)
     pprint.pprint(env['clusterName'])
 
-    if env['clusterName']:
+    if env['clusterName'] == cluster:
         # TODO: write code...
         text = (
             f"EC2 instance {event['resources']} in {event['region']}"
@@ -84,4 +84,7 @@ def lambda_handler(event, context):
             logger.error("Server connection failed: %s", e.reason)
 
     else:
-        print("Instance does not belong to this cluster\"env['clusterName']\" ")
+        text = (
+            f"Instance {event['resources']} doesn't belong to this {cluster} cluster "
+        )
+        print(text)
